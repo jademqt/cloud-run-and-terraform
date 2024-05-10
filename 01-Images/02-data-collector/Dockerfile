@@ -17,3 +17,4 @@ ENV DB_NAME="measurements"
 ENV DB_PORT=3306
 
 CMD ["python", "app.py"]
+
