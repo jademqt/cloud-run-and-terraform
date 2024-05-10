@@ -1,0 +1,80 @@
+name: Build and Push Docker Image 03-create_data to GCP
+
+on:
+  push:
+    branches:
+      - main
+    paths: 
+      - '.github/workflows/build-push-image03.yaml'
+      - '01-Images/03-create_data/**'
+    
+env:
+  PROJECT_ID: terraform-test-420413
+  IMAGE_NAME: 03-image-create-data
+  GCP_IMAGE_REPO: air-quality-monitoring-apps
+  GCP_REGION: europe-west9
+  WORKLOAD_IDENTITY_PROVIDER: projects/68976813959/locations/global/workloadIdentityPools/iam-pool-github/providers/iam-pool-provider-github
+
+permissions:
+  contents: read
+  id-token: 'write'
+
+jobs:
+  build-push-image:
+    name: init
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./01-Images/03-create_data
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: gcp authentication
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }} 
+
+      - name: "Docker auth"
+        run: |        
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+      
+      # Get the latest Docker image tag from the repository
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(gcloud container images list-tags ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GCP_IMAGE_REPO }}/${{ env.IMAGE_NAME }} --format='value(tags)' --limit=1)
+          echo "::set-output name=tag::$latest_tag"
+      
+      # Increment the tag
+            # Increment the tag
+      - name: Increment tag
+        id: increment_tag
+        run: |
+          current_tag=${{ steps.get_tag.outputs.tag }}
+          if [ -z "$current_tag" ]; then
+            next_tag="v1.0.0"
+          else
+            IFS='.' read -r -a tag_parts <<< "$current_tag"
+            next_minor=$((tag_parts[1] + 1))
+            next_tag="${tag_parts[0]}.${next_minor}.${tag_parts[2]}"
+          fi
+          echo "::set-output name=next_tag::$next_tag"
+
+      
+      # Build the Docker image
+      - name: Build
+        run: |
+          docker build -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GCP_IMAGE_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.increment_tag.outputs.next_tag }} .
+      
+      # Push the Docker image
+      - name: Push
+        run: |
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GCP_IMAGE_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.increment_tag.outputs.next_tag }}
+
