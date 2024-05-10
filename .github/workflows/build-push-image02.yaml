@@ -15,6 +15,10 @@ env:
   GCP_REGION: europe-west9
   WORKLOAD_IDENTITY_PROVIDER: projects/68976813959/locations/global/workloadIdentityPools/iam-pool-github/providers/iam-pool-provider-github
 
+permissions:
+  contents: read
+  id-token: 'write'
+
 jobs:
   build-push-image:
     name: init
