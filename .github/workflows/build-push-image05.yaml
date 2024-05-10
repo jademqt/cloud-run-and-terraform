@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths: 
-      - '.github/workflows/build-push-image02.yaml'
+      - '.github/workflows/build-push-image05.yaml'
       - '01-Images/05-data-cleanup/**'
     
 env:
