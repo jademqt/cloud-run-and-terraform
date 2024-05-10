@@ -16,12 +16,16 @@ env:
   WORKLOAD_IDENTITY_PROVIDER: projects/68976813959/locations/global/workloadIdentityPools/iam-pool-github/providers/iam-pool-provider-github
 
 jobs:
-  build-and-push:
+  build-push-image:
+    name: init
     runs-on: ubuntu-latest
+    environment:
+      name: dev
+
     defaults:
       run:
         shell: bash
-        working-directory: 01-Images/02-data-collector/
+        working-directory: ./01-Images/02-data-collector
 
     steps:
       - name: Checkout
@@ -32,7 +36,7 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }} 
-    
+
       - name: "Docker auth"
         run: |        
           gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
