@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality Measurements</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background-color: #f2f2f2;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            font-weight: bold;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Air Quality Measurements</h1>
+
+    <h2>CO2 Measurements</h2>
+    <table id="co2-table">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Date</th>
+                <th>CO2 Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les relevés de CO2 seront affichés ici -->
+        </tbody>
+    </table>
+
+    <h2>PM2.5 Measurements</h2>
+    <table id="pm25-table">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Date</th>
+                <th>PM2.5 Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les relevés de PM2.5 seront affichés ici -->
+        </tbody>
+    </table>
+
+    <h2>Ozone Measurements</h2>
+    <table id="ozone-table">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Date</th>
+                <th>Ozone Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les relevés d'ozone seront affichés ici -->
+        </tbody>
+    </table>
+
+    <script>
+        // Faire une requête GET pour récupérer les relevés de CO2
+        fetch('/co2')
+            .then(response => response.json())
+            .then(data => {
+                const co2Table = document.getElementById('co2-table').getElementsByTagName('tbody')[0];
+                data.forEach(measurement => {
+                    const row = co2Table.insertRow();
+                    row.insertCell(0).textContent = measurement[1]; // Location
+                    row.insertCell(1).textContent = measurement[2]; // Date
+                    row.insertCell(2).textContent = measurement[3]; // CO2 Level
+                });
+            });
+    
+        // Faire une requête GET pour récupérer les relevés de PM2.5
+        fetch('/pm25')
+            .then(response => response.json())
+            .then(data => {
+                const pm25Table = document.getElementById('pm25-table').getElementsByTagName('tbody')[0];
+                data.forEach(measurement => {
+                    const row = pm25Table.insertRow();
+                    row.insertCell(0).textContent = measurement[1]; // Location
+                    row.insertCell(1).textContent = measurement[2]; // Date
+                    row.insertCell(2).textContent = measurement[3]; // PM2.5 Level
+                });
+            });
+    
+        // Faire une requête GET pour récupérer les relevés d'ozone
+        fetch('/ozone')
+            .then(response => response.json())
+            .then(data => {
+                const ozoneTable = document.getElementById('ozone-table').getElementsByTagName('tbody')[0];
+                data.forEach(measurement => {
+                    const row = ozoneTable.insertRow();
+                    row.insertCell(0).textContent = measurement[1]; // Location
+                    row.insertCell(1).textContent = measurement[2]; // Date
+                    row.insertCell(2).textContent = measurement[3]; // Ozone Level
+                });
+            });
+    </script>
+    
+</body>
+</html>
