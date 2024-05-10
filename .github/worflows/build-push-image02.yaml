@@ -4,8 +4,8 @@ on:
   push:
     branches: [ "main" ]
   paths: 
+    - '.github/workflows/build-push-image02.yaml'
     - '01-Images/02-data-collector/**'
-    - '.github/workflows/build-push-images.yaml'
     
 env:
   PROJECT_ID: terraform-test-420413
