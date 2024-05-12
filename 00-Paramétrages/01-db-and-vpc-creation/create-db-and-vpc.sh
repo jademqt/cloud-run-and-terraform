@@ -6,14 +6,13 @@ ZONE="europe-west9-a"
 NETWORK="vpc-air-quality"
 STORAGE="10GB"
 AUTH_NETWORK="89.84.216.134/32"
-PASSWORD="test"
 RESERVED_RANGE_NAME="google-managed-services-vpc"
 RESERVED_RANGE="172.30.0.0"
 DATABASE_NAME="measurements"
 DYNAMIC_ROUTING_MODE="global"
 MYSQL_CR_USER="cloudrun-user"
-MYSQL_CR_PWD="test"
-MYSQL_ROOT_PWD="test"
+MYSQL_CR_PWD="cloudrun-user-pwd"
+MYSQL_ROOT_PWD="root-pwd"
 
 gcloud compute networks create $NETWORK \
     --subnet-mode=auto \
@@ -52,4 +51,4 @@ gcloud beta sql instances create $INSTANCE_NAME \
 gcloud sql databases create $DATABASE_NAME \
  --instance=$INSTANCE_NAME 
 
-gcloud sql users create $MYSQL_CR_USER --instance=$INSTANCE_NAME --password=$MYSQL_ROOT_PWD
+gcloud sql users create $MYSQL_CR_USER --instance=$INSTANCE_NAME --password=$MYSQL_CR_PWD

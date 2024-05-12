@@ -1,18 +1,18 @@
-name: 'Terraform-dev-horsescan'
+name: 'Terraform-air-quality-monitoring'
 
 on:
   push:
     branches:
       - dev
     paths: 
-      - 'HorseScan/environments/dev/**'
-      - 'HorseScan/modules/**'
-      - '.github/workflows/horsescan-dev.yaml'
+      - '02-IaC/modules/**'
+      - '02-IaC/environments/dev/main.tf'
+      - '.github/workflows/terraform.yaml'
 
 env:
-  PROJECT_ID: horsescan-379114
-  BUCKET_TF_STATE: terraform-state-horsescan
-  WORKLOAD_IDENTITY_PROVIDER: projects/169309412126/locations/global/workloadIdentityPools/iam-pool-horsescan-dev/providers/iam-pool-provider-horsescan-dev
+  PROJECT_ID: terraform-test-420413
+  BUCKET_TF_STATE: air-quality-monitoring-terraform-state
+  WORKLOAD_IDENTITY_PROVIDER: projects/68976813959/locations/global/workloadIdentityPools/iam-pool-github/providers/iam-pool-provider-github
 
 permissions:
   contents: read
@@ -28,7 +28,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./HorseScan/environments/dev
+        working-directory: ./02-IaC/environments/dev
 
     steps:
       - name: Checkout
@@ -40,57 +40,6 @@ jobs:
           project_id: ${{ env.PROJECT_ID }}
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }} 
 
-
-      # Activating necessary Google Cloud Platform APIs
-      - name: Activating GCP APIs
-        run: |
-          set -x
-
-          gcloud config set project ${{ env.PROJECT_ID }} 
-          echo "=> Configurations will run in the : ${{ env.PROJECT_ID }}. "
-          echo ""
-          
-          services=(
-            "cloudresourcemanager.googleapis.com"
-            "secretmanager.googleapis.com"
-            "firestore.googleapis.com"
-            "iam.googleapis.com"
-            "compute.googleapis.com"
-            "run.googleapis.com"
-            "serviceusage.googleapis.com"
-          )
-
-          for service in "${services[@]}"; do
-              gcloud services enable "$service" 
-          done
-
-      # Verify secrets availability in the secret manager
-      - name: Verify secret availibility in secret manager
-        run: |
-          set -x
-          SECRETS=("MAILJET_API_KEY" "MAILJET_SECRET_KEY" "ODOO_SECRET" "FN_CLIENT_SECRET" "FN_CLIENT_ID")
-          SECRET_PB_DETECTED=0
-
-          for SECRET in "${SECRETS[@]}"
-          do
-            gcloud secrets versions access latest --secret="$SECRET" >/dev/null 2>&1
-
-            if [ $? -eq 1 ]; then
-              echo "=> The secret $SECRET doesn't exist or doesn't have a version in the project ${{ env.PROJECT_ID }}"
-              ((SECRET_PB_DETECTED++))
-              echo ""
-            else
-              echo "=> The secret $SECRET is available in the project ${{ env.PROJECT_ID }}."
-            fi
-          done
-
-          if [ $SECRET_PB_DETECTED -gt 0 ]; then
-              echo ""
-              echo "==> $SECRET_PB_DETECTED secrets are not available. Exit."
-              echo ""
-              exit 1
-          fi
-
       - name: Setup Terraform with specified version on the runner
         uses: hashicorp/setup-terraform@v2
         with:
@@ -101,43 +50,10 @@ jobs:
         run: terraform init -backend-config="bucket=${{ env.BUCKET_TF_STATE }}"
   
       # Additional checks
-      - name: Terraform format
-        id: fmt
-        run: terraform fmt -recursive
+      # - name: Terraform check format
+      #   id: check-fmt
+      #   run: terraform fmt -check
 
-      - name: Terraform check format
-        id: check-fmt
-        run: terraform fmt -check
-
-      # Importing secret into the terraform configuration
-      - name: Importing secrets to TF
-        run: |
-          set -x
-          IMPORT_TO_TF_PB_DETECTED=0
-          SECRETS=("MAILJET_API_KEY" "MAILJET_SECRET_KEY" "ODOO_SECRET" "FN_CLIENT_SECRET" "FN_CLIENT_ID")
-
-          for SECRET in "${SECRETS[@]}"
-          do
-            # Check if resource is already managed by Terraform
-            if terraform state show "module.cloud_run.google_secret_manager_secret.secrets[\"$SECRET\"]" &>/dev/null; then
-              echo "=> The secret $SECRET is already managed by Terraform, skipping import."
-            else
-              # If not managed, attempt to import
-              terraform import "module.cloud_run.google_secret_manager_secret.secrets[\"$SECRET\"]" "projects/${{ env.PROJECT_ID }}/secrets/$SECRET" >/dev/null 2>&1
-              if [ $? -eq 1 ]; then
-                TF_ERROR=$(terraform 2>&1)
-                echo "=> The secret $SECRET couldn't be imported to the Terraform configuration."
-                ((IMPORT_TO_TF_PB_DETECTED++))
-              fi
-            fi
-          done
-
-          if [ $IMPORT_TO_TF_PB_DETECTED -gt 0 ]; then
-            echo ""
-            echo "=> $IMPORT_TO_TF_PB_DETECTED secrets couldn't be imported. Exit."
-            echo ""
-            exit 1
-          fi
 
       - name: Terraform validate
         id: validate

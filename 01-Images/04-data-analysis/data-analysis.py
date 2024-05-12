@@ -36,19 +36,19 @@ def calculate_average_by_location(table_name, column_name):
 def average_co2():
     averages = calculate_average_by_location("co2_measurements", "co2_level")
     data = {location: average for location, average in averages}
-    return jsonify(data)
+    print (jsonify(data))
 
 @app.route('/average/pm25')
 def average_pm25():
     averages = calculate_average_by_location("pm25_measurements", "pm25_level")
     data = {location: average for location, average in averages}
-    return jsonify(data)
+    print (jsonify(data))
 
 @app.route('/average/ozone')
 def average_ozone():
     averages = calculate_average_by_location("ozone_measurements", "ozone_level")
     data = {location: average for location, average in averages}
-    return jsonify(data)
+    print (jsonify(data))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8090)
