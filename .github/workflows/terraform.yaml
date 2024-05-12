@@ -49,7 +49,6 @@ jobs:
         id: init
         run: terraform init -backend-config="bucket=${{ env.BUCKET_TF_STATE }}"
   
-
       # Additional checks
       # - name: Terraform check format
       #   id: check-fmt
