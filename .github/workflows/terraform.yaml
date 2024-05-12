@@ -28,7 +28,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./HorseScan/environments/dev
+        working-directory: ./02-IaC/environments/dev
 
     steps:
       - name: Checkout
